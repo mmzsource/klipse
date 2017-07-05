@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>3D Drawing on a html5 canvas with Klipse</title>
+
+<link rel="stylesheet" type="text/css"  
+  href="http://app.klipse.tech/css/codemirror.css">
+
+<script>  
+  window.klipse_settings = {
+        selector: '.language-klipse',
+        selector_js: '.language-klipse-js'
+};
+</script>
+
+</head>
+
+<body>
+
+  <pre>
+    <code class="language-klipse">
+(defn view-bezier-curve [x1 y1 x2 y2 x3 y3 ctx]
+  (.beginPath ctx)
+  (.moveTo ctx x1 y1)
+  (.quadraticCurveTo ctx x2 y2 x3 y3)
+  (.stroke ctx)
+  (.closePath ctx))
+
+(let [canvas (js/document.getElementById "canvas-3d")
+      ctx    (.getContext canvas "2d")]
+    
+  ;; draw four area's bounded by grey lines
+  (set! (.-strokeStyle ctx) "grey")
+  (set! (.-lineWidth   ctx)      1)
+  (.clearRect  ctx   0   0 512 512)
+  (.strokeRect ctx   0   0 512 512)
+  (.strokeRect ctx   0   0 256 256)
+  (.strokeRect ctx 256 256 512 512)
+  
+  ;; Now draw some bezier curves in it
+  (set! (.-strokeStyle ctx) "red")
+  (set! (.-lineWidth   ctx) 2)
+  
+  ;; Increasing ascending curve
+  (view-bezier-curve 0 256 256 256 256 0 ctx)
+
+  ;; Swoosh
+  (view-bezier-curve 256 128, 256 256, 512 0 ctx)
+
+  ;; y = x^2
+  (view-bezier-curve 0 256, 128 767, 256 256 ctx)
+
+  ;; my pulse after a useless meeting
+  (view-bezier-curve 256 511, 512 511, 512 511 ctx))    
+   </code>
+  </pre>
+  <canvas id="canvas-3d" width="512" height="512"></canvas>
+
+
+  <script src="http://app.klipse.tech/plugin/js/klipse_plugin.js?"></script>
+</body>
+</html>

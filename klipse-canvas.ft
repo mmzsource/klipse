@@ -1,0 +1,158 @@
+# Links
+
+- [Klipse Github Page](https://github.com/viebel/klipse) (very good readme where some 'gotchas' are explained)
+- [Klipse Manual](https://github.com/viebel/klipse/blob/master/repl.md)
+- [Klipse Blog](http://blog.klipse.tech)
+- [How To Klipse-fy a clojure[script] blog post](http://blog.klipse.tech/clojure/2016/06/07/klipse-plugin-tuto.html)
+- [New way of writing data driven blog posts (with klipse & google charts)](http://blog.klipse.tech/data/2017/03/17/data-driven-documents-google-charts.html)
+- [How to draw on a canvas with Klipse](http://read.klipse.tech/draw-on-an-canvas-with-klipse-and-core-async/)
+
+# Klipse Session
+
+## Basic HTML
+
+Starting with a basic html page with the klipse plugin activated and provisioned with a simple clojure function:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>3D Drawing on a html5 canvas with Klipse</title>
+  <link rel="stylesheet" type="text/css" href="http://app.klipse.tech/css/codemirror.css">
+  <script>
+    window.klipse_settings = {
+      selector: '.language-klipse',
+      selector_js: '.language-klipse-js'
+    };
+  </script>
+</head>
+<body>
+  <pre><code class="language-klipse">(map inc [1 2 3])</code></pre>
+  <canvas id="canvas-3d" width="512" height="512"></canvas>
+  <script src="http://app.klipse.tech/plugin/js/klipse_plugin.js?"></script>
+</body>
+</html>
+```
+
+## Get a grip on the canvas
+
+```clojurescript
+(let [canvas (js/document.getElementById "canvas-3d")
+      ctx    (.getContext canvas "2d")
+      width  (.-width     canvas)
+      height (.-height    canvas)]
+  (set! (.-fillStyle   ctx)   "red")
+  (set! (.-strokeStyle ctx) "black")
+  (set! (.-lineWidth   ctx)      10)
+  (.clearRect  ctx  0  0         width        height)
+  (.strokeRect ctx  0  0         width        height)
+  (.fillRect   ctx 50 50 (- width 100) (- height 100)))
+```
+
+```clojurescript
+(let [canvas      (js/document.getElementById "canvas-3d")
+      ctx         (.getContext canvas "2d")
+      width       (.-width     canvas)
+      height      (.-height    canvas)
+      half-width  (/  width 2)
+      half-height (/ height 2)]
+  (set! (.-fillStyle   ctx)   "red")
+  (set! (.-strokeStyle ctx) "black")
+  (set! (.-lineWidth   ctx)      10)
+  (.clearRect     ctx  0  0         width        height)
+  (.strokeRect    ctx  0  0         width        height)
+  (.fillRect      ctx 50 50 (- width 100) (- height 100))
+  (.beginPath     ctx)
+  (.moveTo        ctx 256 64)
+  (.bezierCurveTo ctx 0 256, 512 192, 256 448)
+  (.stroke        ctx)
+  (.closePath     ctx))
+```
+
+```clojurescript
+(defn view-bezier-curve [x1 y1 x2 y2 x3 y3 ctx]
+  (.beginPath ctx)
+  (.moveTo ctx x1 y1)
+  (.quadraticCurveTo ctx x2 y2 x3 y3)
+  (.stroke ctx)
+  (.closePath ctx))
+
+(let [canvas      (js/document.getElementById "canvas-3d")
+      ctx         (.getContext canvas "2d")
+      width       (.-width     canvas)
+      height      (.-height    canvas)
+      half-width  (/  width 2)
+      half-height (/ height 2)]
+    
+  ;; draw four area's bounded by grey lines
+  (set! (.-strokeStyle ctx) "grey")
+  (set! (.-lineWidth   ctx)      1)
+  (.clearRect  ctx  0 0 width height)
+  (.strokeRect ctx  0 0 width height)
+  (.strokeRect ctx  0 0 half-width half-height)
+  (.strokeRect ctx half-width half-height width height)
+  
+  ;; Now draw some bezier curves in it
+  (set! (.-strokeStyle ctx) "red")
+  (set! (.-lineWidth   ctx) 2)
+  
+  ;; Increasing ascending curve
+  (view-bezier-curve 0 half-height half-width half-height half-width 0 ctx)
+
+  ;; Swoosh
+  (view-bezier-curve half-width (/ half-height 2), half-width half-height, width 0 ctx)
+
+  ;; y = x^2
+  (view-bezier-curve 0 half-height, (/ half-width 2) (+ height half-height), half-width half-height ctx)
+
+  ;; my pulse after a useless meeting
+  (view-bezier-curve half-width (- height 1), width (- height 1), width (- height 1) ctx))
+```
+
+More concrete:
+
+```clojurescript
+(defn view-bezier-curve [x1 y1 x2 y2 x3 y3 ctx]
+  (.beginPath ctx)
+  (.moveTo ctx x1 y1)
+  (.quadraticCurveTo ctx x2 y2 x3 y3)
+  (.stroke ctx)
+  (.closePath ctx))
+
+(let [canvas (js/document.getElementById "canvas-3d")
+      ctx    (.getContext canvas "2d")]
+    
+  ;; draw four area's bounded by grey lines
+  (set! (.-strokeStyle ctx) "grey")
+  (set! (.-lineWidth   ctx)      1)
+  (.clearRect  ctx   0   0 512 512)
+  (.strokeRect ctx   0   0 512 512)
+  (.strokeRect ctx   0   0 256 256)
+  (.strokeRect ctx 256 256 512 512)
+  
+  ;; Now draw some bezier curves in it
+  (set! (.-strokeStyle ctx) "red")
+  (set! (.-lineWidth   ctx) 2)
+  
+  ;; Increasing ascending curve
+  (view-bezier-curve 0 256 256 256 256 0 ctx)
+
+  ;; Swoosh
+  (view-bezier-curve 256 128, 256 256, 512 0 ctx)
+
+  ;; y = x^2
+  (view-bezier-curve 0 256, 128 768, 256 256 ctx)
+
+  ;; my pulse after a useless meeting
+  (view-bezier-curve 256 511, 512 511, 512 511 ctx))
+```
+
+- javascript interop: js/document...
+- calling a function on a javascript object (.getContext canvas "2d")
+- calling a property on a javascript object (.-width canvas)
+
+## Must learn the basic context
+
+Even when using alien technology like clojure(script) you must understand the underlying concepts of the libraries you're using.
+
