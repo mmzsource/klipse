@@ -71,81 +71,43 @@ Starting with a basic html page with the klipse plugin activated and provisioned
 ```
 
 ```clojurescript
-(defn view-bezier-curve [x1 y1 x2 y2 x3 y3 ctx]
+(defn draw-bezier-curve [x1 y1 x2 y2 x3 y3 ctx]
   (.beginPath ctx)
   (.moveTo ctx x1 y1)
   (.quadraticCurveTo ctx x2 y2 x3 y3)
   (.stroke ctx)
   (.closePath ctx))
 
-(let [canvas      (js/document.getElementById "canvas-3d")
-      ctx         (.getContext canvas "2d")
-      width       (.-width     canvas)
-      height      (.-height    canvas)
-      half-width  (/  width 2)
-      half-height (/ height 2)]
-    
+(let [canvas (js/document.getElementById "canvas-2d")
+      ctx    (.getContext canvas "2d")
+      w      (.-width canvas)
+      h      (.-height canvas)
+      x      (/ w 2)
+      y      (/ h 2)]
+
   ;; draw four area's bounded by grey lines
   (set! (.-strokeStyle ctx) "grey")
   (set! (.-lineWidth   ctx)      1)
-  (.clearRect  ctx  0 0 width height)
-  (.strokeRect ctx  0 0 width height)
-  (.strokeRect ctx  0 0 half-width half-height)
-  (.strokeRect ctx half-width half-height width height)
-  
+  (.clearRect  ctx 0 0 w h)
+  (.strokeRect ctx 0 0 w h)
+  (.strokeRect ctx 0 0 x y)
+  (.strokeRect ctx x y w h)
+
   ;; Now draw some bezier curves in it
   (set! (.-strokeStyle ctx) "red")
   (set! (.-lineWidth   ctx) 2)
-  
+
   ;; Increasing ascending curve
-  (view-bezier-curve 0 half-height half-width half-height half-width 0 ctx)
+  (draw-bezier-curve 0 y, x y, x 0, ctx)
 
   ;; Swoosh
-  (view-bezier-curve half-width (/ half-height 2), half-width half-height, width 0 ctx)
+  (draw-bezier-curve x (/ x 2), x y, w 0, ctx)
 
   ;; y = x^2
-  (view-bezier-curve 0 half-height, (/ half-width 2) (+ height half-height), half-width half-height ctx)
+  (draw-bezier-curve 0 x, (/ x 2) (* h 1.5), x y, ctx)
 
   ;; my pulse after a useless meeting
-  (view-bezier-curve half-width (- height 1), width (- height 1), width (- height 1) ctx))
-```
-
-More concrete:
-
-```clojurescript
-(defn view-bezier-curve [x1 y1 x2 y2 x3 y3 ctx]
-  (.beginPath ctx)
-  (.moveTo ctx x1 y1)
-  (.quadraticCurveTo ctx x2 y2 x3 y3)
-  (.stroke ctx)
-  (.closePath ctx))
-
-(let [canvas (js/document.getElementById "canvas-3d")
-      ctx    (.getContext canvas "2d")]
-    
-  ;; draw four area's bounded by grey lines
-  (set! (.-strokeStyle ctx) "grey")
-  (set! (.-lineWidth   ctx)      1)
-  (.clearRect  ctx   0   0 512 512)
-  (.strokeRect ctx   0   0 512 512)
-  (.strokeRect ctx   0   0 256 256)
-  (.strokeRect ctx 256 256 512 512)
-  
-  ;; Now draw some bezier curves in it
-  (set! (.-strokeStyle ctx) "red")
-  (set! (.-lineWidth   ctx) 2)
-  
-  ;; Increasing ascending curve
-  (view-bezier-curve 0 256 256 256 256 0 ctx)
-
-  ;; Swoosh
-  (view-bezier-curve 256 128, 256 256, 512 0 ctx)
-
-  ;; y = x^2
-  (view-bezier-curve 0 256, 128 768, 256 256 ctx)
-
-  ;; my pulse after a useless meeting
-  (view-bezier-curve 256 511, 512 511, 512 511 ctx))
+  (draw-bezier-curve x (* h 0.75), w (* h 0.75), w (* h 0.75) ctx))
 ```
 
 - javascript interop: js/document...
