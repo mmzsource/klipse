@@ -51,63 +51,72 @@ Starting with a basic html page with the klipse plugin activated and provisioned
 ```
 
 ```clojurescript
-(let [canvas      (js/document.getElementById "canvas-3d")
-      ctx         (.getContext canvas "2d")
-      width       (.-width     canvas)
-      height      (.-height    canvas)
-      half-width  (/  width 2)
-      half-height (/ height 2)]
-  (set! (.-fillStyle   ctx)   "red")
-  (set! (.-strokeStyle ctx) "black")
-  (set! (.-lineWidth   ctx)      10)
-  (.clearRect     ctx  0  0         width        height)
-  (.strokeRect    ctx  0  0         width        height)
-  (.fillRect      ctx 50 50 (- width 100) (- height 100))
-  (.beginPath     ctx)
-  (.moveTo        ctx 256 64)
-  (.bezierCurveTo ctx 0 256, 512 192, 256 448)
-  (.stroke        ctx)
-  (.closePath     ctx))
-```
+(def canvas (js/document.getElementById "canvas-2d"))
+(def ctx    (.getContext canvas "2d"))
+(def twoPI  (* 2 (.-PI js/Math)))
 
-```clojurescript
-(defn draw-bezier-curve [x1 y1 x2 y2 x3 y3 ctx]
+(defn draw-point [x y]
+  (let [r 5] ;; radius
+    (set! (.-fillStyle   ctx) "blue")
+    (.beginPath ctx)
+    (.arc ctx x y r 0 twoPI)
+    (.fill ctx)))
+
+
+(defn draw-bezier-curve [[x1 y1] [x2 y2] [x3 y3]]
+  ;; draw curve
+  (set! (.-strokeStyle ctx) "red")
+  (set! (.-lineWidth   ctx) 2)
   (.beginPath ctx)
   (.moveTo ctx x1 y1)
   (.quadraticCurveTo ctx x2 y2 x3 y3)
   (.stroke ctx)
-  (.closePath ctx))
+  (.closePath ctx)
+  ;; draw control points
+  (draw-point x1 y1)
+  (draw-point x2 y2)
+  (draw-point x3 y3))
 
-(let [canvas (js/document.getElementById "canvas-2d")
-      ctx    (.getContext canvas "2d")
-      w      (.-width canvas)
-      h      (.-height canvas)
-      x      (/ w 2)
-      y      (/ h 2)]
 
-  ;; draw four area's bounded by grey lines
+(let [wc (.-width canvas)  ;; width of *html* canvas
+      hc (.-height canvas) ;; height of *html* canvas
+      ratio 0.9            ;; ratio of *html* canvas to use as *drawing* canvas
+      t  (/ (- 1 ratio) 2) ;; translation constant
+      w  (* ratio wc)      ;; width of *drawing* canvas 
+      h  (* ratio hc)      ;; height of *drawing* canvas
+      x  (* 1/2 w)         ;; x val between 0 and w
+      y  (* 1/2 h)]        ;; y val between 0 and h
+
+  (.clearRect ctx 0 0 wc hc)  ;; clear html canvas
+
+  (.save ctx)
+  (.translate ctx (* t wc) (* t hc))
+
+  ;; draw a grey border around the drawing canvas
+  (set! (.-lineWidth ctx) 1)
   (set! (.-strokeStyle ctx) "grey")
-  (set! (.-lineWidth   ctx)      1)
-  (.clearRect  ctx 0 0 w h)
   (.strokeRect ctx 0 0 w h)
-  (.strokeRect ctx 0 0 x y)
-  (.strokeRect ctx x y w h)
 
-  ;; Now draw some bezier curves in it
-  (set! (.-strokeStyle ctx) "red")
-  (set! (.-lineWidth   ctx) 2)
+  ;; (Un)comment what you want to show / hide
+  ;; Change the coordinates to get a feel for the bezier curves
+
+  ;; (draw-point 0 0)
+  ;; (draw-point x y)
+  ;; (draw-point w h)
 
   ;; Increasing ascending curve
-  (draw-bezier-curve 0 y, x y, x 0, ctx)
+  (draw-bezier-curve [0 h] [w h] [w 0])
 
   ;; Swoosh
-  (draw-bezier-curve x (/ x 2), x y, w 0, ctx)
+  ;; (draw-bezier-curve [0 y] [0 h] [w 0])
 
-  ;; y = x^2
-  (draw-bezier-curve 0 x, (/ x 2) (* h 1.5), x y, ctx)
+  ;; normal curve
+  ;; (draw-bezier-curve [0 h] [x 0] [w h])
 
   ;; my pulse after a useless meeting
-  (draw-bezier-curve x (* h 0.75), w (* h 0.75), w (* h 0.75) ctx))
+  ;; (draw-bezier-curve [0 y] [x y] [w y])
+
+  (.restore ctx))
 ```
 
 - javascript interop: js/document...
