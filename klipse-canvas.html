@@ -54,8 +54,8 @@
       t  (/ (- 1 ratio) 2) ;; translation constant
       w  (* ratio wc)      ;; width of *drawing* canvas 
       h  (* ratio hc)      ;; height of *drawing* canvas
-      x  (* 1/2 w)         ;; x val between 0 and w
-      y  (* 1/2 h)]        ;; y val between 0 and h
+      x  (* 1/2 w)         ;; x val in the middle of 0 and w
+      y  (* 1/2 h)]        ;; y val in the middle of 0 and h
 
   (.clearRect ctx 0 0 wc hc)  ;; clear html canvas
 
